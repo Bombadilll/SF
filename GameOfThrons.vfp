@@ -1,0 +1,27 @@
+<apex:page controller="GameOfThrons">
+      <apex:form id="Form">
+        <apex:pageBlock >
+        <apex:pageBlockButtons >
+                    <apex:commandButton action="{!choiceHeroInBattle}" value="choiceAndFight" reRender="Form"/>
+                </apex:pageBlockButtons>
+                 <apex:pageBlockTable value="{!wrapList}" var="list">
+                    <apex:column > 
+                        <apex:inputCheckbox value="{!list.checkValue}"/> 
+                    </apex:column>  
+                    <apex:column value="{!list.heroBattle.nameHero__c}"/>  
+                    <apex:column value="{!list.heroBattle.hpHero__c}"/> 
+                    <apex:column value="{!list.heroBattle.minDamadge__c}"/>
+                </apex:pageBlockTable> 
+              </apex:pageBlock>  
+              Rezult fight 
+              <apex:inputTextarea rendered="Form" value="{!listHeroEndBattle}" /> 
+           <apex:pageBlock>
+                  <apex:pageBlockTable value="{!listHeroEndBattle}" var="list">
+                            <apex:column value="{!list.nameHero}"/>  
+                            <apex:column value="{!list.hpHero}"/> 
+                            <apex:column value="{!list.minDamadge}"/>
+                        </apex:pageBlockTable> 
+          </apex:pageBlock>   
+    </apex:form>
+
+</apex:page>

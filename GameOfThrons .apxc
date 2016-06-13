@@ -1,0 +1,69 @@
+public class GameOfThrons {
+      public List<HeroHome__c> heroList{get; set;}
+      public List<WrapBattle> wrapList {get;set;}
+      public List<HeroGameOfThrons> listHeroEndBattle{get;set;}
+    	// wraper class choice hero in battle
+        public Class WrapBattle{
+        public boolean checkValue {get;set;}
+        public HeroHome__c heroBattle {get;set;}
+            WrapBattle(HeroHome__c heroBattle, boolean chek){
+                          this.heroBattle= heroBattle;
+                            checkValue = chek;
+      	  }
+        }
+
+     
+      public GameOfThrons(){
+        heroList= new List<HeroHome__c>([SELECT nameHero__c,hpHero__c,
+                                     minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c FROM HeroHome__c]);
+          fillWrap();
+                
+    }
+    
+        private void fillWrap(){
+        wrapList = new List<WrapBattle>();
+            for(HeroHome__c indxHero:heroList){
+                wrapList.add(new WrapBattle(indxHero, false));
+            }
+        }
+        
+        public void choiceHeroInBattle(){
+        List<HeroHome__c> choice = new List<HeroHome__c>();
+            for(Integer i = 0; i < wrapList.size(); i++){
+                    if (wrapList[i].checkValue){
+                        choice.add(wrapList[i].heroBattle);
+                      }        
+                }
+        fight(new  HeroGameOfThrons(choice[0]),new HeroGameOfThrons(choice[1])); 
+        
+   		}
+
+
+    
+    
+    public  void fight( HeroGameOfThrons  hero01, HeroGameOfThrons hero02){
+         
+	  while(hero01.hpHero >0 && hero02.hpHero> 0){
+            hero01.hpHero-=hero02.kickDamadge(); 
+           	hero02.hpHero-=hero01.kickDamadge();
+        }
+        
+        if (hero01.hpHero>hero02.hpHero){
+        	hero01.winHero(hero02);
+            hero02.dieHero();
+       			 } else {
+                    	 if (hero01.hpHero<hero02.hpHero){
+        						hero02.winHero(hero01);
+           					    hero01.dieHero();
+                         } else { 
+                             hero01.dieHero(); 
+                             hero02.dieHero();
+                           }
+           	}    
+        hero01.updateHero(heroList[0]);
+        hero02.updateHero(heroList[1]);
+        listHeroEndBattle= new List<HeroGameOfThrons>();
+        listHeroEndBattle.add(hero01);
+       	listHeroEndBattle.add(hero02);
+  }
+}
