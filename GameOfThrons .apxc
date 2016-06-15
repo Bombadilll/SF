@@ -1,8 +1,12 @@
 public class GameOfThrons {
+      public boolean createHeroPage{get; set;}
+	  public HeroHome__c createNewHero{get; set;} 
       public List<HeroHome__c> heroList{get; set;}
       public List<WrapBattle> wrapList {get;set;}
       public List<HeroGameOfThrons> listHeroEndBattle{get;set;}
-    	// wraper class choice hero in battle
+      public List<HeroHome__c> choice;
+    
+    	//**wraper class choice hero in battle
         public Class WrapBattle{
         public boolean checkValue {get;set;}
         public HeroHome__c heroBattle {get;set;}
@@ -12,42 +16,87 @@ public class GameOfThrons {
       	  }
         }
 
-     
+     //**Build class and fill Wrap Class
       public GameOfThrons(){
-        heroList= new List<HeroHome__c>([SELECT nameHero__c,hpHero__c,
+          updatePage();
+		 }
+    //**Method is update page from Database
+    public void updatePage(){
+         heroList= new List<HeroHome__c>([SELECT nameHero__c,hpHero__c,
                                      minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c FROM HeroHome__c]);
-          fillWrap();
-                
+        createNewHero= new HeroHome__c();
+        fillWrap();
     }
-    
+    // save Hero in DB from Page
+    public void  saveCreateHero(){
+        if( createHeroPage==true){
+       			upsert createNewHero;
+           		createHeroPage=false; 
+                updatePage();
+       	 }else{       
+          	createHeroPage=true;
+           }
+      }
+    public void cancelSave(){
+        createHeroPage=false;
+    }
+    //Method is fill Wrap Class
         private void fillWrap(){
         wrapList = new List<WrapBattle>();
             for(HeroHome__c indxHero:heroList){
                 wrapList.add(new WrapBattle(indxHero, false));
             }
         }
-        
+   
+        //Method is choice Hero in battle
         public void choiceHeroInBattle(){
-        List<HeroHome__c> choice = new List<HeroHome__c>();
+            choice = new List<HeroHome__c>();
             for(Integer i = 0; i < wrapList.size(); i++){
                     if (wrapList[i].checkValue){
-                        choice.add(wrapList[i].heroBattle);
+                        if (choice.size()<2){
+                            choice.add(wrapList[i].heroBattle);
+                        }else {wrapList[i].checkValue=false;}// uncheck more Hero
                       }        
                 }
-        fight(new  HeroGameOfThrons(choice[0]),new HeroGameOfThrons(choice[1])); 
-        
+            if(choice.size()==2){// chek on Null or allone hero    
+       			 fight(new  HeroGameOfThrons(choice[0]),new HeroGameOfThrons(choice[1])); 
+            }
    		}
-
-
+    // Method is delete Hero from DB
+    public void deleteHero(){
+        choice = new List<HeroHome__c>();
+        for(Integer i = 0; i < wrapList.size(); i++){
+                    if (wrapList[i].checkValue){
+                         choice.add(wrapList[i].heroBattle);
+                      }        
+                }
+        delete choice;
+        updatePage();
+    }
     
-    
+	 //Main method is in the battle
     public  void fight( HeroGameOfThrons  hero01, HeroGameOfThrons hero02){
-         
-	  while(hero01.hpHero >0 && hero02.hpHero> 0){
-            hero01.hpHero-=hero02.kickDamadge(); 
-           	hero02.hpHero-=hero01.kickDamadge();
+    	 Integer damadgeHero01;
+         Integer damadgeHero02;
+   	  while(hero01.hpHero >0 && hero02.hpHero> 0){
+          damadgeHero01=hero01.kickDamadge();
+          damadgeHero02=hero02.kickDamadge();
+          
+          if(hero01.hpHero>damadgeHero02){//check if hpHero01<0,endBatle
+              hero01.hpHero-=damadgeHero02;
+                  if(hero02.hpHero>damadgeHero01){//check hpHero02 on <0
+                    hero02.hpHero-=damadgeHero01;
+                    }else{
+                        hero02.hpHero=0;
+                        hero02.totalDamadge-=damadgeHero02;
+                    }
+          	}else{
+                hero01.hpHero=0;
+                hero01.totalDamadge-=damadgeHero01;
+            }
+          
+              
         }
-        
         if (hero01.hpHero>hero02.hpHero){
         	hero01.winHero(hero02);
             hero02.dieHero();
@@ -59,9 +108,11 @@ public class GameOfThrons {
                              hero01.dieHero(); 
                              hero02.dieHero();
                            }
-           	}    
-        hero01.updateHero(heroList[0]);
-        hero02.updateHero(heroList[1]);
+           	} 
+        // Update used hero in database
+        hero01.updateHero(choice[0]);
+        hero02.updateHero(choice[1]);
+        // to pass rezult batle on the page 
         listHeroEndBattle= new List<HeroGameOfThrons>();
         listHeroEndBattle.add(hero01);
        	listHeroEndBattle.add(hero02);
