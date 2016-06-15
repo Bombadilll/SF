@@ -3,21 +3,11 @@ public class HeroGameOfThrons {
     public String  nameHero{get;set;}
     public Integer hpHero{get;set;}
     public Integer minDamadge{get;set;}
-    Integer maxDamadge{get;set;}
-    Integer expHero{get;set;}
-    Integer lvlHero{get;set;}
-    Integer totalDamadge{get;set;}
+    public Integer maxDamadge{get;set;}
+    public Integer expHero{get;set;}
+    public Integer lvlHero{get;set;}
+    public Integer totalDamadge{get;set;}
     
-        public HeroGameOfThrons (String  nameHero,Integer hpHero,Integer minDamadge,
-                                 Integer maxDamadge,Integer expHero,Integer lvlHero){
-                This.nameHero=nameHero;
-                This.hpHero=hpHero;
-                This.minDamadge=minDamadge;
-                This.maxDamadge=maxDamadge;
-                This.expHero=expHero;
-                This.lvlHero=lvlHero;
-                totalDamadge=0;
-      }
         public HeroGameOfThrons(HeroHome__c choseHero){
            	    This.nameHero=choseHero.nameHero__c;
                 This.hpHero=(Integer)choseHero.hpHero__c;
@@ -26,18 +16,18 @@ public class HeroGameOfThrons {
                 This.expHero=(Integer)choseHero.expHero__c;
                 This.lvlHero=(Integer)choseHero.lvlHero__c;
                 totalDamadge=0;
-            
         }
+    
     public  Integer kickDamadge(){
         Integer damadge=(integer)(Math.floor(Math.random() * (maxDamadge - minDamadge + 1) + minDamadge));
-        expHero+=(integer)(damadge*0.750);
+        expHero+=(integer)(damadge*0.250);
         totalDamadge+=damadge;
         return damadge;
     }
     
     public void winHero(HeroGameOfThrons targetHero){
-       
-        expHero+=500 * (10 + targetHero.lvlHero-lvlHero)/(10 + lvlHero);//exp for win
+		//exp  for win.      
+        expHero+=250 * (10 + targetHero.lvlHero-lvlHero)/(10 + lvlHero);//exp for win
              System.debug(' Win is '+nameHero+' last xp= '+hpHero+'defeated-'
                           +targetHero.nameHero+'My total hert damadge='+totalDamadge);
     }
