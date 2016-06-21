@@ -1,25 +1,36 @@
-<apex:page controller="GameOfThrons"  tabStyle="Case">
+<apex:page controller="GameOfThrons"  tabStyle="Case" sidebar="false" showHeader="false">
       <apex:form id="Form">
+            <apex:pageBlock >
+                   <apex:pageBlockSection > 
+                       <h1>Game of Throns battle.{!random}</h1>
+                    	<apex:image url="{!URLFOR($Resource.ResourceGOT, 'gameOfThrons/Images/imageHeader0'+random+'.gif')}" width="500" height="180" />
+                </apex:pageBlockSection>
+             </apex:pageBlock>
         <apex:pageBlock title="GameOfThrons" >
             <!-- Base button ... -->
         <apex:pageBlockButtons >
-            	    <apex:commandButton  action="{!choiceHeroInBattle}" value="Choice And Fight" reRender="Form"/>
-                   <apex:commandButton  action="{!saveCreateHero}" value="Create new Hero" reRender="Form"/>
-             	   <apex:commandButton  action="{!deleteHero}" value="Delete Hero" reRender="Form"/>
+            	    <apex:commandButton action="{!choiceHeroInBattle}" value="Choice And Fight" reRender="Form"/>
+                   <apex:commandButton action="{!saveCreateHero}" value="Create new Hero" reRender="Form"/>
+             	   <apex:commandButton action="{!deleteHero}" value="Delete Hero" reRender="Form"/>
         </apex:pageBlockButtons>
             <!-- Block is create new Hero ... -->
-          <apex:pageBlock  title="Create new Hero:" rendered="{!createHeroPage}">
-              <apex:pageBlockSection> 
-                    <apex:inputField label="nameHero" value="{!createNewHero.nameHero__c}" tabOrderHint="1"/> 
-                    <apex:inputField label="hpHero" value="{!createNewHero.hpHero__c}" tabOrderHint="2"/> 
-                  <apex:commandButton value="Cancel" action="{!cancelSave}" reRender="Form"/>
-                   <apex:commandButton value="Save" action="{!saveCreateHero}" reRender="Form"/>
-              </apex:pageBlockSection>
-          </apex:pageBlock>
+          <apex:pageBlock title="Create new Hero:" rendered="{!createHeroPage}">
+                 	<apex:pageBlockSection > 
+                                <apex:inputField label="Name Hero" value="{!createNewHero.nameHero__c}" tabOrderHint="1"/> 
+                                <apex:inputField label="Hp Hero" value="{!createNewHero.hpHero__c}" tabOrderHint="2"/> 
+                                <apex:inputCheckbox label="Undead" value="{!createNewHero.undeadHero__c}"/>
+                         </apex:pageBlockSection>
+                      <apex:pageBlockSection > 
+                               <apex:commandButton value="Cancel" action="{!cancelSave}" reRender="Form"/>
+                               <apex:commandButton value="Save" action="{!saveCreateHero}" reRender="Form"/>
+                      </apex:pageBlockSection>          
+        </apex:pageBlock>
          <!-- Block is choise Hero ... -->   
          <apex:pageBlockTable value="{!wrapList}" var="list">
-                    <apex:column headerValue="Choice Hero" > 
-                        <apex:inputCheckbox value="{!list.checkValue}"/> 
+                    <apex:column headerValue="Choice Hero" >
+                        <!-- Check in dead hero - unaviable... true/false--> 
+                    <apex:inputCheckbox disabled="{!if(NOT(ISBLANK(list.heroBattle.deadTime__c))&&
+                                                      (list.heroBattle.deadTime__c>NOW()),true,false)}" value="{!list.checkValue}"/>
                     </apex:column> 
                      <apex:column value="{!list.heroBattle.lvlHero__c}"/>   
                     <apex:column value="{!list.heroBattle.nameHero__c}"/>  
@@ -27,11 +38,26 @@
                     <apex:column value="{!list.heroBattle.minDamadge__c}"/>
                     <apex:column value="{!list.heroBattle.maxDamadge__c}"/>
                     <apex:column value="{!list.heroBattle.expHero__c}"/>
-                </apex:pageBlockTable> 
-        </apex:pageBlock>  
+             		<apex:column value="{!list.heroBattle.deadTime__c}"/>
+       </apex:pageBlockTable> 
+     </apex:pageBlock>  
+           <!-- Block   battle Hero ... --> 
+           <apex:pageBlock title="Game of Throns is Begin!!!">
+               <apex:pageBlock > 
+                   <apex:pageBlockSection title="Game of Throns logs!!!">
+              			  <apex:dataList value="{!listHeroEndBattle}" var="listHero" > 
+									{!listHero.nameHero}                              
+                                    <apex:dataList type="1" value="{!listHero.logHero}" var="list"  >                               
+                                             {!list}                            
+                                    </apex:dataList>
+                            </apex:dataList>
+                       </apex:pageBlockSection>
+                    </apex:pageBlock>
+    </apex:pageBlock>   
+          
         <!-- Block view  battle rezult  ... -->  
            <apex:pageBlock title="Game of Throns is end. Look at rezult!!!">
-                  <apex:pageBlockTable  value="{!listHeroEndBattle}" var="listEnd">
+                  <apex:pageBlockTable value="{!listHeroEndBattle}" var="listEnd">
                             <apex:column headerValue="Level Hero" value="{!listEnd.lvlHero}"/> 
                             <apex:column headerValue="Name Hero" value="{!listEnd.nameHero}"/>  
                             <apex:column headerValue="Lost health" value="{!listEnd.hpHero}"/> 
