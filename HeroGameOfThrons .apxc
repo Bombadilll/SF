@@ -1,56 +1,117 @@
-public class HeroGameOfThrons {
-    
+/**
+ * Class create Hero.
+ */ 
+public class HeroGameOfThrons 
+{
     public String  nameHero{get;set;}
     public Integer hpHero{get;set;}
     public Integer minDamadge{get;set;}
     public Integer maxDamadge{get;set;}
     public Integer expHero{get;set;}
     public Integer lvlHero{get;set;}
+    public DateTime deadTimeHero{get;set;}
     public Integer totalDamadge{get;set;}
+    public List<String> logHero{get;set;}
     
-        public HeroGameOfThrons(HeroHome__c choseHero){
-           	    This.nameHero=choseHero.nameHero__c;
-                This.hpHero=(Integer)choseHero.hpHero__c;
-                This.minDamadge=(Integer)choseHero.minDamadge__c;
-                This.maxDamadge=(Integer)choseHero.maxDamadge__c;
-                This.expHero=(Integer)choseHero.expHero__c;
-                This.lvlHero=(Integer)choseHero.lvlHero__c;
-                totalDamadge=0;
+        public HeroGameOfThrons(HeroHome__c choseHero)
+            {
+                    This.nameHero=choseHero.nameHero__c;
+                    This.hpHero=(Integer)choseHero.hpHero__c;
+                    This.minDamadge=(Integer)choseHero.minDamadge__c;
+                    This.maxDamadge=(Integer)choseHero.maxDamadge__c;
+                    This.expHero=(Integer)choseHero.expHero__c;
+                    This.lvlHero=(Integer)choseHero.lvlHero__c;
+                	logHero=new List<String>();
+                    totalDamadge=0;
+            }
+    /**
+     * ñalculate Hero damadge kick
+     */ 
+    public  Integer kickDamadge()
+        {  
+            Decimal ratioDamadge=1;
+         	String  logKick;
+            Integer chanceBlock;
+            Integer randomAttack=GameOfThrons.randomMethod(4);
+         	Integer randomBlock=GameOfThrons.randomMethod(4);
+            // calculate  base damadge
+            Integer damadge=(integer)(Math.floor(Math.random() * (maxDamadge - minDamadge + 1) + minDamadge));
+            //calculate ratio damadge
+            if(randomAttack==randomBlock){
+                //chance blocked
+                chanceBlock=GameOfThrons.randomMethod(10);
+                    if(chanceBlock<=8){
+                      ratioDamadge=0;
+                      logKick='My hit is blocked.';
+                    }else{
+                        ratioDamadge=4;
+                        logKick='I broke the block,rate x4';
+                    } 
+              }else {
+               		 if (randomAttack==0){
+                            ratioDamadge=2;// in head, damadge x2
+                         	logKick='I hit in head,rate x2';
+                     } else if(randomAttack==1){
+                            ratioDamadge=0.9;// in body, damadge x1
+                            logKick='I hit in body,rate x1';
+                     }else if(randomAttack==2){
+                			ratioDamadge=0.5;// in arms, damadge x0,5
+                            logKick='I hit in arms,rate x0,5';
+                     }else if(randomAttack==3){  
+               			    ratioDamadge=0.7;// in legs, damadge x0,7
+                            logKick='I hit in legs,rate x0,7';
+                     }
+                }       
+            damadge=(integer)(damadge*ratioDamadge);
+         	//calculate exp for kick
+            expHero+=(integer)(damadge*0.250);
+            // summary damadge
+            totalDamadge+=damadge;
+            // log
+            logHero.add(nameHero+':'+logKick+'--'+damadge+' damadge.');
+            return damadge;
         }
-    
-    public  Integer kickDamadge(){
-        Integer damadge=(integer)(Math.floor(Math.random() * (maxDamadge - minDamadge + 1) + minDamadge));
-        expHero+=(integer)(damadge*0.250);
-        totalDamadge+=damadge;
-        return damadge;
-    }
-    
-    public void winHero(HeroGameOfThrons targetHero){
-		//exp  for win.      
-        expHero+=250 * (10 + targetHero.lvlHero-lvlHero)/(10 + lvlHero);//exp for win
-             System.debug(' Win is '+nameHero+' last xp= '+hpHero+'defeated-'
-                          +targetHero.nameHero+'My total hert damadge='+totalDamadge);
-    }
-   
-    public void dieHero(){
-         System.debug('I am die. '+nameHero+' defeated.'+' My total hert damadge='+totalDamadge);
-    }
-    
-    public void updateHero(HeroHome__c oldHero){
-        // Level up
-        If (oldHero.lvlHero__c<(expHero/1000)){
-           minDamadge+=10;
-           maxDamadge+=20;
-           oldHero.hpHero__c+=100;
-           lvlHero+=1; 
+        /**
+         *Action if Hero is win.
+         */
+    public void winHero(HeroGameOfThrons targetHero)
+        {   
+            //exp  for win.      
+            expHero+=250 * (10 + targetHero.lvlHero-lvlHero)/(10 + lvlHero);//exp for win
+                logHero.add(' Win is '+nameHero+' last xp= '+hpHero+'defeated-'
+                              +targetHero.nameHero+'My total hert damadge='+totalDamadge);
         }
-        //only update
-        						  oldHero.minDamadge__c=minDamadge;
-                				  oldHero.maxDamadge__c=maxDamadge;
-                				  oldHero.expHero__c=expHero;
-                				  oldHero.lvlHero__c=lvlHero;
-        		update  oldHero;
-        
-    }
+       /**
+         * Action if Hero is dead.
+         */
+    public void dieHero()
+        {
+        	deadTimeHero=datetime.now()+1;// bloked dead hero on 1 day
+             logHero.add('I am die. '+nameHero+' defeated.'+' My total hert damadge='+totalDamadge);
+             
+        }
+       /**
+         * Update eny Heros. 
+         */
+    public void updateHero(HeroHome__c oldHero)
+        {
+            // Level up
+            If (oldHero.lvlHero__c<(expHero/1000)){
+               minDamadge+=10;
+               maxDamadge+=20;
+               oldHero.hpHero__c+=100;
+               lvlHero+=1; 
+            }
+            //only update
+                     oldHero.minDamadge__c=minDamadge;
+                     oldHero.maxDamadge__c=maxDamadge;
+                     oldHero.expHero__c=expHero;
+                     oldHero.lvlHero__c=lvlHero;
+            if(deadTimeHero!=null){// if hero is dead,then update feeld.
+                oldHero.deadTime__c=deadTimeHero;
+            }  
+                    
+                     update  oldHero;
+        }
     
 }
