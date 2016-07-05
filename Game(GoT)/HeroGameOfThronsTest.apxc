@@ -1,0 +1,73 @@
+/**
+ * test class for GameOfThrons all
+ * @author Alexander Gusak
+ */
+
+@isTest(SeeAllData=false)
+private class HeroGameOfThronsTest {
+   
+    @isTest
+    static  void positiveCaseTeste(){
+        GameOfThrons testGame= new GameOfThrons();
+         // check how create hero from page
+         testGame.saveCreateHero();//for  createHeroPage==true
+         testGame.createNewHero= new HeroHome__c(nameHero__c='testHero1',hpHero__c=1000,maxDamadge__c=80,minDamadge__c=40,countWins__c=0,countDefits__c=0);
+         testGame.saveCreateHero();
+         testGame.saveCreateHero();//for  createHeroPage==true
+         testGame.createNewHero= new HeroHome__c(nameHero__c='testHero2',hpHero__c=1000,maxDamadge__c=80,minDamadge__c=40,countWins__c=0,countDefits__c=0);
+         testGame.saveCreateHero();
+       
+         // jast try method use
+         testGame.updatePage();
+         testGame.choiceHeroInBattle();
+         testGame.deleteHero();
+         
+         
+         //  for check trigger before battle
+         HeroHome__c TestHero1checkT =[SELECT name,nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c 
+                                                                       FROM HeroHome__c 
+                                                                       WHERE nameHero__c='testHero1'];
+         HeroHome__c TestHero2checkT=[SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c 
+                                                                       FROM HeroHome__c 
+                                                                      WHERE nameHero__c='testHero2'];
+         // play 10 game 
+        for(integer i=0;i<10;i++){
+        // receive data for battle
+         testGame.choice= new List<HeroHome__c>([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+                                                           FROM HeroHome__c 
+                                                           WHERE nameHero__c='testHero2' OR nameHero__c='testHero1']);
+          // read test hero 
+         HeroGameOfThrons TestHero1= new HeroGameOfThrons([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+                                                           FROM HeroHome__c 
+                                                           WHERE nameHero__c='testHero1']);
+         HeroGameOfThrons TestHero2= new HeroGameOfThrons([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+                                                           FROM HeroHome__c 
+                                                           WHERE nameHero__c='testHero2']);
+        // check batle
+        testGame.fight(TestHero1, TestHero2);
+        system.assertNotEquals(null, TestHero1);
+         system.assertNotEquals(null, TestHero2);
+          // check if battle is done
+         System.assertEquals(new List<HeroGameOfThrons>{TestHero1,TestHero2}, testGame.listHeroEndBattle);
+        }
+        
+        
+         // check trigger for winRate change
+         HeroHome__c TestHero1fromUpdate =[SELECT name,nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c  
+                                                                       FROM HeroHome__c 
+                                                                       WHERE nameHero__c='testHero1'];
+         HeroHome__c TestHero2fromUpdate=[SELECT nameHero__c, hpHero__c,minDamadge__c,
+                                                                      maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+                                                                       FROM HeroHome__c 
+                                                                       WHERE nameHero__c='testHero2'];
+      
+        system.assertNotEquals(TestHero1checkT.winRate__c, TestHero1fromUpdate.winRate__c);
+        system.assertNotEquals(TestHero2checkT.winRate__c, TestHero2fromUpdate.winRate__c);
+        
+        
+        
+    }
+        
+
+
+}

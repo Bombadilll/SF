@@ -1,0 +1,295 @@
+/**
+ * Class controler and action battle Hero.
+ */ 
+public class GameOfThrons 
+{
+      public boolean createHeroPage{get; set;}
+   	  public boolean inventoryHeroPage{get; set;}
+	  public HeroHome__c createNewHero{get; set;}
+      public HeroHome__c inventoryHero{get; set;}
+      public List<HeroArmor__c> armorHero{get; set;}
+      public List<HeroWeapon__c> weaponHero{get; set;}
+      public static List<HeroArmor__c> armorListDrop=new List<HeroArmor__c>([SELECT armorName__c, armorDropRate__c,usedHeroArmor__c
+                                                 FROM HeroArmor__c]);
+      public static List<HeroWeapon__c> weaponListDrop=new List<HeroWeapon__c>([SELECT weaponName__c, weaponDropRate__c,usedHeroWeapon__c
+                                                 FROM HeroWeapon__c]); 
+      public List<HeroHome__c> heroList{get; set;}
+      public List<WrapBattle> wrapList {get;set;}
+      public List<HeroGameOfThrons> listHeroEndBattle{get;set;}
+      public List<HeroHome__c> choice;
+      public String random{get;set;}
+      
+    
+    	/**
+    	 *wraper class choice hero in battle
+		*/
+        public Class WrapBattle
+        {
+            public boolean checkValue {get;set;}
+            public HeroHome__c heroBattle {get;set;}
+            public Integer leader{get;set;}
+            
+            WrapBattle(HeroHome__c heroBattle, boolean chek,Integer leader)
+                {  this.leader=leader;
+                   this.heroBattle= heroBattle;
+                   checkValue = chek;
+                }
+        }
+
+     /**
+      * Build class and fill Wrap Class
+      */
+  public GameOfThrons()
+          {
+              updatePage();
+              random=String.valueOf(randomMethod(4));// for gif random on page
+             
+          }
+    /**
+     *TODO:transport in ControlerPage
+     *Method is update page from Database
+     */
+	public void updatePage()
+        {
+             heroList= new List<HeroHome__c>([SELECT nameHero__c,hpHero__c,minDamadge__c,maxDamadge__c,
+                                              expHero__c,lvlHero__c,deadTime__c,undeadHero__c,winRate__c,
+                                              countWins__c,countDefits__c,attackRate__c,defensRate__c,inventory__c,
+                                              HeroHome__c.inventory__r.weaponHero__r.weaponRate__c,
+                                              HeroHome__c.inventory__r.totalArmor__c
+                                              FROM HeroHome__c
+                                              ORDER BY  winRate__c DESC NULLS LAST]);
+           
+            createNewHero= new HeroHome__c();
+            fillWrap();
+        }
+     /**
+     *TODO:transport in ControlerPage
+     *open inventory Hero in DB from Page
+     */
+    public void  openInventory()
+        {
+             HeroHome__c choice=new  HeroHome__c();
+                for(Integer i = 0; i < wrapList.size(); i++){
+                        if (wrapList[i].checkValue){
+                            if (choice.id==NULL){
+                                choice=(wrapList[i].heroBattle);
+                            }else {wrapList[i].checkValue=false;}// uncheck more Hero
+                          }        
+                    }
+              
+                if(choice.id!=NULL){// display inventory hero
+                inventoryHero=[SELECT nameHero__c,inventory__c,
+                                                inventory__r.armorHelmet__r.armorName__c,
+                               					inventory__r.armorBody__r.armorName__c,
+                               				    inventory__r.armorLegs__r.armorName__c,
+                               				    inventory__r.armorArms__r.armorName__c,
+                               					inventory__r.armorShield__r.armorName__c,
+                                                inventory__r.weaponHero__r.weaponName__c,
+                                                inventory__r.totalArmor__c
+                                              FROM HeroHome__c
+                               				  WHERE id=:choice.id];
+                 // for SOQL query 
+                 String likeNameHero='%'+choice.nameHero__c+'%';  
+                 armorHero=new List<HeroArmor__c>([SELECT armorName__c,armorLevel__c,armorRate__c,armorType__c,usedHeroArmor__c,equipArmor__c
+ 	                                          FROM HeroArmor__c
+                               				  WHERE usedHeroArmor__c LIKE:likeNameHero]);
+                // for SOQL query weapon
+                 weaponHero=new List<HeroWeapon__c>([SELECT weaponName__c,weaponLevel__c,weaponRate__c,weaponType__c,usedHeroWeapon__c,equipWeapon__c
+ 	                                          FROM HeroWeapon__c
+                               				  WHERE usedHeroWeapon__c LIKE:likeNameHero]); 
+       
+            // if invetory open,then closed
+            if(inventoryHeroPage==true){
+		      inventoryHeroPage=false; 
+             	 updatePage();      
+                    
+                 }else{       
+                    inventoryHeroPage=true;
+                   }
+            }// end if choice to display inventory
+          }// end method
+    /**
+     * equip choice inventory
+     */
+    public void equipInventory(){
+        // read equip on hero
+        HeroInventory__c updateEquip =[SELECT   armorHelmet__c,
+                               					armorBody__c,
+                               				    armorLegs__c,
+                               				    armorArms__c,
+                               					armorShield__c,
+                                                weaponHero__c
+                                              FROM HeroInventory__c
+                               				  WHERE id=:inventoryHero.inventory__c];  
+         // read set equipmen  
+        for(HeroArmor__c indexArmor:armorHero){
+            if(indexArmor.equipArmor__c){
+                if(indexArmor.armorType__c=='arms'){
+                 updateEquip.armorArms__c=indexArmor.id;  
+                }else if(indexArmor.armorType__c=='body'){
+                 updateEquip.armorbody__c=indexArmor.id;  
+                }else if(indexArmor.armorType__c=='helmet'){
+                  updateEquip.armorHelmet__c=indexArmor.id;   
+                }else if(indexArmor.armorType__c=='legs'){
+                 updateEquip.armorLegs__c=indexArmor.id;     
+                }else if(indexArmor.armorType__c=='shield'){
+                    updateEquip.armorShield__c=indexArmor.id;  
+                }
+                
+            }// if equip 
+        }// end for armor
+        // read set weapon
+        for(HeroWeapon__c indexWeapon:weaponHero){
+            if(indexWeapon.equipWeapon__c){
+             updateEquip.weaponHero__c=indexWeapon.id;    
+            }
+        
+        }
+        // update in all case
+        update updateEquip;
+        // for update data
+        openInventory();
+    }
+    
+    /**
+     *TODO:transport in ControlerPage
+     *Method is cancel invetory Hero 
+     */
+    public void cancelInventory()
+        {
+            inventoryHeroPage=false;
+        }
+    /**
+     *TODO:transport in ControlerPage
+     *save Hero in DB from Page
+     */
+    public void  saveCreateHero()
+        {
+            if( createHeroPage==true){
+                    if((createNewHero.nameHero__c<>null)&&(createNewHero.hpHero__c<>null)){
+                       // create new inventory for new hero
+                       HeroInventory__c newInventory=new HeroInventory__c(name=createNewHero.nameHero__c);
+                       insert newInventory;
+                      createNewHero.inventory__c=newInventory.id; 
+                      insert createNewHero;  
+                    }
+             createHeroPage=false; 
+             updatePage();      
+                    
+             }else{       
+                createHeroPage=true;
+               }
+          }
+    /**
+     * public random method
+     */
+    public static Integer randomMethod(Integer upperLimit){
+        Integer rand = Math.round(Math.random()*10);
+        return Math.mod(rand, upperLimit);
+    }
+        
+    /**
+     *TODO:transport in ControlerPage
+     *Method is cancel create Hero 
+     */
+    public void cancelSave()
+        {
+            createHeroPage=false;
+        }
+    /**
+     *TODO:transport in ControlerPage
+     *Method is fill Wrap Class 
+     */
+        private void fillWrap()
+            {
+            Integer leader=1;
+            wrapList = new List<WrapBattle>();
+                for(HeroHome__c indxHero:heroList){
+                    wrapList.add(new WrapBattle(indxHero, false,leader++));
+                }
+            }
+       
+        /** 
+         *TODO:transport in ControlerPage
+         *Method is choice Hero in battle 
+         */
+        public void choiceHeroInBattle()
+            {
+                choice = new List<HeroHome__c>();
+                for(Integer i = 0; i < wrapList.size(); i++){
+                        if (wrapList[i].checkValue){
+                            if (choice.size()<2){
+                                choice.add(wrapList[i].heroBattle);
+                            }else {wrapList[i].checkValue=false;}// uncheck more Hero
+                          }        
+                    }
+                if(choice.size()==2){// chek on Null or allone hero    
+                     fight(new  HeroGameOfThrons(choice[0]),new HeroGameOfThrons(choice[1])); 
+                }
+                
+            }
+    /**
+     *TODO:transport in ControlerPage
+     *Method is delete Hero from DB
+     *
+     */  
+    public void deleteHero()
+        {
+            choice = new List<HeroHome__c>();
+            for(Integer i = 0; i < wrapList.size(); i++){
+                        if (wrapList[i].checkValue){
+                             choice.add(wrapList[i].heroBattle);
+                          }        
+                    }
+            delete choice;
+            updatePage();
+        }
+    
+	 /**
+	  * Main method is in the battle
+	  */
+ public  void fight( HeroGameOfThrons  hero01, HeroGameOfThrons hero02)
+        {  //for check hero hp
+             Integer damadgeHero01;
+             Integer damadgeHero02;
+           // fight
+          while(hero01.hpHero >0 && hero02.hpHero> 0){
+              damadgeHero01=hero01.kickDamadge(hero02);
+              damadgeHero02=hero02.kickDamadge(hero01);
+              //check hero hp and kick
+              if(hero01.hpHero>damadgeHero02){//check if hpHero01<0,endBatle
+                  hero01.hpHero-=damadgeHero02;
+                      if(hero02.hpHero>damadgeHero01){//check hpHero02 on <0
+                        hero02.hpHero-=damadgeHero01;
+                        }else{
+                            hero02.hpHero=0;
+                            hero02.totalDamadge-=damadgeHero02;
+                        }
+                }else{
+                    hero01.hpHero=0;
+                    hero01.totalDamadge-=damadgeHero01;
+                }
+          }// end while
+            // define who is win or die
+      	if (hero01.hpHero>hero02.hpHero){
+                hero01.winHero(hero02);
+                hero02.dieHero();
+           			} else {
+                             if (hero01.hpHero<hero02.hpHero){
+                                    hero02.winHero(hero01);
+                                    hero01.dieHero();
+                             		} else { 
+                                     hero01.dieHero(); 
+                                     hero02.dieHero();
+                               }
+          } 
+            // Update used hero in database
+            hero01.updateHero(choice[0]);
+            hero02.updateHero(choice[1]);
+            // to pass rezult batle on the page 
+            listHeroEndBattle= new List<HeroGameOfThrons>();
+            listHeroEndBattle.add(hero01);
+            listHeroEndBattle.add(hero02);
+            updatePage();
+      }
+}

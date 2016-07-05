@@ -1,0 +1,170 @@
+/**
+ * test class for Company task on Provectus courses
+ * @author Alexander Gusak
+ */
+
+@isTest(SeeAllData=false)
+public class ControleCompanyL3Test {
+    
+    //all incoming value must be  equally
+    static void createTestData(integer countCompany,integer countRate, integer countOrder,integer countWP){
+        
+        List<Company__c>testlistCompany=new  List<Company__c>();
+        List<Rate__c> testlistRate= new List<Rate__c>();
+        List<WorkPeriod__c>testlistWP= new List<WorkPeriod__c>();
+        List<OrderStud__c>testlistOrder= new List<OrderStud__c>();
+        
+            // create Company
+            for(Integer i=0;i<countCompany;i++) {
+             Company__c testCompany = new Company__c(nameCompany__c='TestCompany' + i);
+               testlistCompany.add(testCompany);
+            }
+            insert testlistCompany;
+          // create Rate
+            for(Integer i=0;i<countRate;i++) {
+             Rate__c testRate = new Rate__c(nameRate__c='TestRate' + i,revenvueRate__c=(i+1)*100,margeRate__c=((i+1)*100)-50);
+               testlistRate.add(testRate);
+            }
+            insert testlistRate;
+           // create Order
+            for(Integer i=0;i<countOrder;i++) {
+                
+            OrderStud__c testOrder = new OrderStud__c(nameOrder__c='TestOrder' + i,Company__c=testlistCompany.get(i).id);
+                
+               testlistOrder.add(testOrder);
+                
+            }
+            insert testlistOrder;
+           // create WP
+            for(Integer i=0;i<countWP;i++) {
+                
+            WorkPeriod__c testWP = new WorkPeriod__c(nameWP__c='TestWP' + i,StartDate__c=(date.today()-300),
+                                                     EndDate__c=(date.today()-50),Rate__c=testlistRate.get(i).id,
+                                                     OrderStud__c=testlistOrder.get(i).id);
+                
+               testlistWP.add(testWP);
+                
+            }
+            insert testlistWP;
+    }// end  createTestData
+    
+    /**
+     * Create Data for one record
+     */
+    @isTest
+    static void testCreateDataAndReletionShipsForOne(){
+         // Create on one all record from above method
+         ControleCompanyL3Test.createTestData(1,1,1,1);
+          // create new controler
+         ControlerCompanyL3 testCont=new ControlerCompanyL3(); 
+         // get data
+         testCont.listCompany= new List<Company__c>([SELECT nameCompany__c,id__c
+                                            FROM Company__c WHERE nameCompany__c LIKE 'Test%']);  
+         testCont.listRate= new List<Rate__c>([SELECT  nameRate__c,id__c,revenvueRate__c,margeRate__c
+                                            FROM Rate__c WHERE nameRate__c LIKE 'Test%']); 
+         testCont.listWP= new List<WorkPeriod__c>([SELECT  nameWP__c,id__c,StartDate__c,EndDate__c,Rate__c,OrderStud__c
+                                            FROM WorkPeriod__c
+                                         	WHERE StartDate__c!=NULL AND EndDate__c!=NULL
+                                          			AND Rate__c!=NULL AND OrderStud__c!=NULL AND nameWP__c LIKE 'Test%'  
+                                            ORDER BY StartDate__c]);
+         testCont.listOrder= new List<OrderStud__c>([SELECT  nameOrder__c,id__c,Company__c
+                                            FROM OrderStud__c WHERE nameOrder__c LIKE 'Test%']); 
+
+			testCont.culculateReletionship();
+        // check if create reletionship-ok 
+         System.assertNotEquals(NULL,testCont.reletionship);
+    
+    
+    /**
+     * Check getout Data for one record and diffrend  user enters data
+     */
+   			// fill user enter data without company
+    		 testCont.choiceCompanyPage='';
+        	 testCont.startDatePage=(date.today()-200);
+             testCont.endDatePage=(date.today()-50);
+           // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out all company
+            System.debug(testCont.wrapListMaps);
+        
+          // fill user enter data with company
+    		 testCont.choiceCompanyPage='TestCompany0';
+        	   // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out company name=TestCompany0
+            System.debug(testCont.wrapListMaps);
+        
+          // fill user enter data wrong name of the company
+    		 testCont.choiceCompanyPage='Test';
+        	   // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out company all
+           System.debug(testCont.wrapListMaps);
+   
+    }// end testCreateDataAndReletionShipsForOne()
+    
+   /**
+     * Create Data for Many record(200)- for 200-Apex CPU time limit exceeded from server
+     * try for 100- bad, i tried for 50 record-good ))).
+     */
+    @isTest
+    static void testCreateDataAndReletionShipsForMany(){
+         // Create on one all record from above method
+         ControleCompanyL3Test.createTestData(50,50,50,50);
+          // create new controler
+         ControlerCompanyL3 testCont=new ControlerCompanyL3(); 
+         // get data
+         testCont.listCompany= new List<Company__c>([SELECT nameCompany__c,id__c
+                                            FROM Company__c WHERE nameCompany__c LIKE 'Test%']);  
+         testCont.listRate= new List<Rate__c>([SELECT  nameRate__c,id__c,revenvueRate__c,margeRate__c
+                                            FROM Rate__c WHERE nameRate__c LIKE 'Test%']); 
+         testCont.listWP= new List<WorkPeriod__c>([SELECT  nameWP__c,id__c,StartDate__c,EndDate__c,Rate__c,OrderStud__c
+                                            FROM WorkPeriod__c
+                                         	WHERE StartDate__c!=NULL AND EndDate__c!=NULL
+                                          			AND Rate__c!=NULL AND OrderStud__c!=NULL AND nameWP__c LIKE 'Test%'  
+                                            ORDER BY StartDate__c]);
+         testCont.listOrder= new List<OrderStud__c>([SELECT  nameOrder__c,id__c,Company__c
+                                            FROM OrderStud__c WHERE nameOrder__c LIKE 'Test%']); 
+
+			testCont.culculateReletionship();
+        // check if create reletionship-ok 
+         System.assertNotEquals(NULL,testCont.reletionship);
+    
+    
+    /**
+     * Check getout Data for one record and diffrend  user enters data
+     */
+   			// fill user enter data without company
+    		 testCont.choiceCompanyPage='';
+        	 testCont.startDatePage=(date.today()-600);
+             testCont.endDatePage=(date.today()+50);
+           // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out all company
+            System.debug(testCont.wrapListMaps);
+        
+          // fill user enter data with company
+    		 testCont.choiceCompanyPage='TestCompany0';
+        	   // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out company name=TestCompany0
+            System.debug(testCont.wrapListMaps);
+        
+          // fill user enter data wrong name of the company
+    		 testCont.choiceCompanyPage='Test';
+        	   // check
+           testCont.fillRezultPage();
+           System.assertNotEquals(NULL, testCont.wrapListMaps); 
+           // must out company all
+           System.debug(testCont.wrapListMaps);
+   
+    }// end testCreateDataAndReletionShipsForOne()
+    
+     
+
+} //end main class

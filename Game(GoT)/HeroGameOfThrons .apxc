@@ -1,0 +1,211 @@
+/**
+ * Class create Hero.
+ */ 
+public class HeroGameOfThrons 
+{
+    public Integer attackRate{get;set;}
+    public Integer defensRate{get;set;}
+    public Integer countDefits{get;set;}
+    public Integer countWins{get;set;}
+    public String  nameHero{get;set;}
+    public Integer hpHero{get;set;}
+    public Integer minDamadge{get;set;}
+    public Integer maxDamadge{get;set;}
+    public Integer expHero{get;set;}
+    public Integer expHeroInBattle{get;set;}
+    public Integer lvlHero{get;set;}
+    public DateTime deadTimeHero{get;set;}
+    public Integer totalDamadge{get;set;}
+    public List<String> logHero{get;set;}
+    public HeroInventory__c heroInventory{get;set;}
+    
+        public HeroGameOfThrons(HeroHome__c choseHero)
+            {
+                    This.nameHero=choseHero.nameHero__c;
+                    This.hpHero=(Integer)choseHero.hpHero__c;
+                    This.minDamadge=(Integer)choseHero.minDamadge__c;
+                    This.maxDamadge=(Integer)choseHero.maxDamadge__c;
+                    This.expHero=(Integer)choseHero.expHero__c;
+                    This.lvlHero=(Integer)choseHero.lvlHero__c;
+                	This.countDefits=(Integer)choseHero.countDefits__c;
+                    This.countWins=(Integer)choseHero.countWins__c;
+                    This.attackRate=(Integer)choseHero.attackRate__c;
+                    This.defensRate=(Integer)choseHero.defensRate__c;
+                    This.heroInventory=choseHero.inventory__r;
+                    logHero=new List<String>();
+                    totalDamadge=0;
+                    calculateInventoryHero();
+            }
+    /**
+     * calculate base statment and eqipment bonus
+     */
+    public void calculateInventoryHero(){
+        defensRate+=(integer)heroInventory.totalArmor__c;
+        if(heroInventory.weaponHero__r.weaponRate__c!=NULL){
+        	attackRate+=(integer)heroInventory.weaponHero__r.weaponRate__c;
+        }
+        
+    }
+     /**
+     * ñalculate Hero damadge kick
+     */ 
+    public  Integer kickDamadge(HeroGameOfThrons  kickHero)
+        {    
+            Decimal ratioAttack=0;
+            Decimal ratioDamadge=1;
+         	String  logKick;
+            Integer chanceBlock;
+            Integer randomAttack=GameOfThrons.randomMethod(4);
+         	Integer randomBlock=GameOfThrons.randomMethod(4);
+            // calculate  base damadge
+            Integer damadge=(integer)(Math.floor(Math.random() * (maxDamadge - minDamadge + 1) + minDamadge));
+            // calculate ratio Attack-defends
+            if(attackRate>=kickHero.defensRate){
+              ratioAttack= ((1+(attackRate-kickHero.defensRate)*0.015));  
+            }else{
+                ratioAttack=(1/(1+(kickHero.defensRate-attackRate)*0.025));  
+            }
+            //calculate min attackRatio
+            if( ratioAttack<0.1){
+                ratioAttack=0.1;
+            }
+           //calculate ratio damadge 
+            if(randomAttack==randomBlock){
+                //chance blocked
+                chanceBlock=randomMethod(10);
+                    if(chanceBlock<=8){
+                      ratioDamadge=0;
+                      ratioAttack=0;
+                      logKick='My hit is blocked.';
+                    }else{
+                        ratioDamadge=4;
+                        logKick='I broke the block,rate x4';
+                    } 
+              }else {
+               		 if (randomAttack==0){
+                            ratioDamadge=2;// in head, damadge x2
+                         	logKick='I hit in head,rate x2';
+                     } else if(randomAttack==1){
+                            ratioDamadge=0.9;// in body, damadge x1
+                            logKick='I hit in body,rate x1';
+                     }else if(randomAttack==2){
+                			ratioDamadge=0.5;// in arms, damadge x0,5
+                            logKick='I hit in arms,rate x0,5';
+                     }else if(randomAttack==3){  
+               			    ratioDamadge=0.7;// in legs, damadge x0,7
+                            logKick='I hit in legs,rate x0,7';
+                     }
+                }       
+            damadge=(integer)(damadge*(ratioDamadge+ratioAttack));
+         	//calculate exp for kick
+            expHero+=(integer)(damadge*0.250);
+            // summary damadge
+            totalDamadge+=damadge;
+            // log
+            logHero.add(nameHero+':'+logKick+'+ rate eqipment x'+ratioAttack.format()+'--'+damadge+' damadge.');
+            return damadge;
+        }
+     /**
+     * public random method
+     */
+    public static Integer randomMethod(Integer upperLimit){
+        Integer rand = Math.round(Math.random()*10);
+        return Math.mod(rand, upperLimit);
+    }
+        
+        /**
+         *Action if Hero is win.
+         */
+    public void winHero(HeroGameOfThrons targetHero)
+        {   integer chanceDrop;
+            integer numberWeaponDrop;
+            HeroWeapon__c dropWeapon= new HeroWeapon__c();
+            integer numberArmorDrop;
+            HeroArmor__c dropArmor= new HeroArmor__c();
+            //exp  for win.      
+            expHero+=250 * (10 + targetHero.lvlHero-lvlHero)/(10 + lvlHero);//exp for win
+                logHero.add(' Win is '+nameHero+' last xp = '+hpHero+'defeated--'
+                              +targetHero.nameHero+'. My total hert damadge ='+totalDamadge);
+        	// add count wins 
+            countWins+=1;
+            // if win drop item
+           chanceDrop=randomMethod(10);
+         if(chanceDrop>4){//chance drop 50 percent from 0 to 9
+             if (randomMethod(10)>6){//chance drop weapon 30 percent 
+               numberWeaponDrop=randomMethod(GameOfThrons.weaponListDrop.size());
+                  system.debug(numberWeaponDrop);
+               dropWeapon=GameOfThrons.weaponListDrop[numberWeaponDrop];
+                 // if droprate weaopon from 0 to 1, calculate
+                 if (((randomMethod(100))/100)<=dropWeapon.weaponDropRate__c){
+                        // add item to hero 
+                      if (dropWeapon.usedHeroWeapon__c==NULL){// for exceap exeption if null
+                         dropWeapon.usedHeroWeapon__c=nameHero;
+                         update dropWeapon;
+                     } 
+                      if(!dropWeapon.usedHeroWeapon__c.contains(nameHero)){// if hero have this item
+                          dropWeapon.usedHeroWeapon__c+=';'+nameHero;
+                       	  update dropWeapon;
+                      }
+                      logHero.add('I get weapon DROP: '+dropWeapon.weaponName__c+'!!!');  
+                     }
+             }else{
+                 // if else drop armor = 70 percent 
+                  numberArmorDrop=randomMethod(GameOfThrons.armorListDrop.size());
+                 system.debug(numberArmorDrop);
+               dropArmor=GameOfThrons.armorListDrop[numberArmorDrop];
+                 // if droprate weaopon from 0 to 1, calculate
+                 if (((randomMethod(100))/100)<=dropArmor.armorDropRate__c){
+                    // add item to hero
+                     if (dropArmor.usedHeroArmor__c==NULL){// for exceap exeption if null
+                         dropArmor.usedHeroArmor__c=nameHero;
+                         update dropArmor;
+                     } 
+  				        if(!dropArmor.usedHeroArmor__c.contains(nameHero)){// if hero have this item
+                          	dropArmor.usedHeroArmor__c+=';'+nameHero;
+                   			update dropArmor;
+                     }
+                  logHero.add('I get armor DROP: '+dropArmor.armorName__c+'!!!');  
+                 }
+                 
+             }  
+         }// end drop  
+        }// end method
+    
+       /**
+         * Action if Hero is dead.
+         */
+    public void dieHero()
+        {
+        	deadTimeHero=datetime.now()+1;// bloked dead hero on 1 day
+             logHero.add('I am die. '+nameHero+' defeated.'+' My total hert damadge='+totalDamadge);
+         countDefits+=1;    
+        }
+       /**
+         * Update eny Heros. 
+         */
+    public void updateHero(HeroHome__c oldHero)
+        {
+            // for statistic on page after battle
+            expHeroInBattle=expHero-(integer)oldHero.expHero__c;
+            // Level up
+            If (oldHero.lvlHero__c<(expHero/1000)){
+               minDamadge+=10;
+               maxDamadge+=20;
+               oldHero.hpHero__c+=100;
+               lvlHero+=1; 
+            }
+            //only update
+                     oldHero.minDamadge__c=minDamadge;
+                     oldHero.maxDamadge__c=maxDamadge;
+                     oldHero.expHero__c=expHero;
+                     oldHero.lvlHero__c=lvlHero;
+            		 oldHero.countWins__c=countWins;
+                     oldHero.countDefits__c=countDefits;
+            if(deadTimeHero!=null){// if hero is dead,then update feeld.
+                oldHero.deadTime__c=deadTimeHero;
+            }  
+                    
+                     update  oldHero;
+        }
+    
+}

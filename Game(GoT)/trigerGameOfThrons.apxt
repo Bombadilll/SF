@@ -1,0 +1,20 @@
+trigger trigerGameOfThrons on HeroHome__c (before update, after update)
+{   /**
+     * before update check undead Hero and clear old record deadTime__c
+     */
+if(Trigger.isBefore){
+        For(HeroHome__c iUpdate:Trigger.New){
+            // if hero win or undead deadTime NULL
+            if(iUpdate.deadTime__c<Datetime.now()||iUpdate.undeadHero__c){
+                iUpdate.deadTime__c=null;        }
+            // if data change, calculate winRate
+            if(iUpdate.countDefits__c>Trigger.oldmap.get(iUpdate.Id).countDefits__c||iUpdate.countWins__c>Trigger.oldmap.get(iUpdate.Id).countWins__c){
+                iUpdate.winRate__c=iUpdate.countWins__c/((iUpdate.countDefits__c+iUpdate.countWins__c)/100);
+              }
+
+        }// end for
+        
+    }//end isBefore
+    
+  
+}

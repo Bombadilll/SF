@@ -1,0 +1,41 @@
+<apex:page controller="ControlerCompanyL3"  sidebar="false" showHeader="false" docType="html-5.0">
+     <apex:form id="Form">
+        <!-- enter data period ... --> 
+          <apex:pageBlock title="Choice period:">
+                 	<apex:pageBlockSection columns="2" > 
+                        <apex:input label="Name Company" value="{!choiceCompany}"/> 
+                                <apex:input label="Start date:" value="{!startDatePage}" type="date"/> 
+                               	<apex:input label="End date:" value="{!endDatePage}" type="date"/> 
+                         </apex:pageBlockSection>
+                      <apex:pageBlockSection > 
+                               
+                               <apex:commandButton value="Ok" action="{!fillRezultPage}" reRender="Form"/>
+                      </apex:pageBlockSection>          
+        </apex:pageBlock>
+         
+         <!-- output data  ... -->
+          <apex:pageBlock title="Company">
+                  <apex:pageBlockTable value="{!wrapListMaps}" var="Company">
+                      		 <apex:column headerValue="Company" value="{!Company}"/> 
+                     		 <apex:column >
+                                  <!-- output BIG MAP REZULT... -->
+                                   <apex:pageBlockTable value="{!wrapListMaps[Company]}" var="listYear">
+                                        <apex:column headerValue="Year" value="{!listYear}"/>
+                                         <apex:column >
+                                              <apex:pageBlockTable value="{!wrapListMaps[Company][listYear]}" var="listMonth">
+                                               	 <apex:column headerValue="Month" value="{!NULL}"/>
+                                                      <apex:column >
+                                                          <apex:pageBlockTable value="{!wrapListMaps[Company][listYear][listMonth]}" var="listEvryMonth">
+                                                              <apex:column headerValue="{!listMonth}" value="{!wrapListMaps[Company][listYear][listMonth][listEvryMonth]}"/>
+                                                          </apex:pageBlockTable>
+                                                      </apex:column>
+                                             </apex:pageBlockTable>   
+                                              
+                                       </apex:column>     
+                                    </apex:pageBlockTable> 
+                            </apex:column>
+                        </apex:pageBlockTable> 
+          </apex:pageBlock>   
+         
+     </apex:form> 
+</apex:page>

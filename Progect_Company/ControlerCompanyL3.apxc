@@ -1,0 +1,247 @@
+/**
+ * class controler and calculate data- report from DB about Company work in same period
+ */
+public class ControlerCompanyL3 {
+  
+    Public List<Company__c>listCompany{get;set;}
+    public list<Rate__c> listRate{get;set;}
+    Public List<WorkPeriod__c>listWP{get;set;}
+    Public List<OrderStud__c>listOrder{get;set;}
+    Public List<WrapAll> reletionship{get;set;}
+    public String choiceCompanyPage{get;set;}
+    public Date startDatePage{get;set;}
+    public Date endDatePage{get;set;}
+    Public map<String,map<integer,map<integer,map<string,integer>>>> wrapListMaps{get;set;}
+    		// constructor controlers
+            public ControlerCompanyL3 ()
+                { 
+                 updateAll(); 
+             }
+   
+   /**
+    * method fill all rezult on page
+    */
+    public void fillRezultPage()
+    {   Integer indexMutableMonthStart;
+      	Integer indexMutableMonthEnd;
+        list <Company__c>listCompanyPage= new list <Company__c>();
+        wrapListMaps=new map<String,map<integer,map<integer,map<string,integer>>>>();
+     //calculate what enter user
+     if (string.isBlank(choiceCompanyPage)){
+            // if user doesn`t enter  data,set all company
+         listCompanyPage.addAll(listCompany);
+     }else{
+         	// serch company in DB
+         	for(Company__c indexName:listCompany){
+                 if(indexName.nameCompany__c==choiceCompanyPage){
+                     listCompanyPage.add(new Company__c(nameCompany__c=choiceCompanyPage));
+                   	} 
+               }
+         // if user enter wrong name company, set all company
+         if(listCompanyPage.isEmpty()){
+             listCompanyPage.addAll(listCompany);
+         }
+      }	
+       		// serch data from DB 
+            for(Company__c indexNameC: listCompanyPage){
+                for(integer i=startDatePage.year();i<=endDatePage.year();i++){
+                    //calculate if diffrent year, them
+                    if (i==startDatePage.year()){
+                          indexMutableMonthStart=startDatePage.month();
+                      }else{
+                          indexMutableMonthStart=1;
+                        }
+                        if (i==endDatePage.year()){
+                                  indexMutableMonthEnd=endDatePage.month();
+                              }else{
+                                  indexMutableMonthEnd=12;
+                              } 
+                        for(integer j=indexMutableMonthStart;j<=indexMutableMonthEnd;j++){
+                            // check period if exist
+                            if (!wrapListMaps.containsKey(indexNameC.nameCompany__c)){
+                                wrapListMaps.put(indexNameC.nameCompany__c, new Map<Integer,Map<Integer, Map<String,Integer>>>());
+                              	} 
+                                     if (!wrapListMaps.get(indexNameC.nameCompany__c).containsKey(i)) {
+                                          wrapListMaps.get(indexNameC.nameCompany__c).put(i, new Map<Integer, Map<String,Integer>>());
+                                         }
+                                        if(!wrapListMaps.get(indexNameC.nameCompany__c).get(i).containsKey(j)) {
+                                            // call method getDataOfDate and fill Map
+                                            wrapListMaps.get(indexNameC.nameCompany__c).get(i).put(j,getDataOfDate(i, j,indexNameC.nameCompany__c));
+                                           }
+                            } 
+                }
+   
+         }// end for name
+     
+    }// end fillRezultPage()
+    
+     /**
+      * wrap class to fill row- list<wrap>
+      */       
+    public class WrapAll
+    {
+       public Company__c linkCompany{get;set;}
+       public OrderStud__c linkOrder{get;set;}
+       public WorkPeriod__c linkWP{get;set;}
+       public Rate__c linkRate{get;set;}
+       public String nameCompanyRow{get;set;}
+       public Map<integer,Map<integer,Map<String,Integer>>> rezultMapDate{get;set;}//Map<year,Map<month,Map<revenvue/marge,value>>>
+      
+        
+               public WrapAll(Company__c linkCompany,OrderStud__c linkOrder,WorkPeriod__c linkWP,Rate__c linkRate)
+               {
+                     this.linkCompany=linkCompany;
+                     this.linkOrder=linkOrder;
+                     this.linkWP=linkWP;
+                     this.linkRate=linkRate;
+                     calculateAllMoney();// calculate in boot 
+                }
+        
+        // calculate eny row Work Period, fill rezult in Map {rezultMapDate}
+        public void calculateAllMoney()
+        {   
+            rezultMapDate=new Map<integer,Map<integer,Map<String,Integer>>>();
+            Integer indexMutableMonthEnd;
+            Integer indexMutableMonthStart;
+            Integer indexEndDay;
+            Integer indexStartDay;
+         	// get data about work period inDB
+            nameCompanyRow=(String)linkCompany.nameCompany__c;
+            Date startDate=linkWP.StartDate__c;
+            Date endDate=linkWP.EndDate__c;
+            Integer revenvue=(integer)linkRate.revenvueRate__c;
+ 			Integer  marge=(integer)linkRate.margeRate__c; 
+            Integer revenvueInMonth;
+            Integer margeInMonth;
+            //calculate year work
+              for(integer i=startDate.year();i<=endDate.year();i++){
+                   	// for different year
+                   	// start year
+                   	if (i==startDate.year()){
+                          indexMutableMonthStart=startDate.month();
+                      }else{
+                          indexMutableMonthStart=1;
+                        }
+                  // end year
+                              if (i==endDate.year()){
+                                  indexMutableMonthEnd=endDate.month();
+                                  
+                              }else{
+                                   indexMutableMonthEnd=12;
+                                }
+                  for(integer j=indexMutableMonthStart;j<=indexMutableMonthEnd;j++){
+                          	//calculate indexEndtDay
+                      		if ((j==endDate.month())&&(i==endDate.year())){
+                                      indexEndDay=endDate.day();
+                                  }else{
+                                      indexEndDay=date.daysInMonth(i,j);
+                                  }
+                           //calculate indexStartDay
+                     		 if ((j==startDate.month())&&(i==startDate.year())){
+                                      indexStartDay=startDate.day();
+                                  }else{
+                                      indexStartDay=1;
+                                  }
+                      //fill rezult map
+                       revenvueInMonth=(((indexEndDay-indexStartDay)+1)*(revenvue/date.daysInMonth(i,j)));
+           			   margeInMonth=(((indexEndDay-indexStartDay)+1)*(marge/date.daysInMonth(i,j)));
+                      // mega put data
+                    if (!rezultMapDate.containsKey(i)) {
+          			  rezultMapDate.put(i, new Map<Integer, Map<String,Integer>>());
+       				 }
+                            if(!rezultMapDate.get(i).containsKey(j)) {
+                                rezultMapDate.get(i).put(j,new Map<String,Integer>());
+                            }
+       							 rezultMapDate.get(i).get(j).put('revenvue',revenvueInMonth);     
+                                  rezultMapDate.get(i).get(j).put('marge',margeInMonth);    
+                            
+                            }// end for month
+               }//end for year
+           }// end for method calculateAllMoney() 
+     }//end for class WrapAll
+    
+    /**
+     * geting data at eny month, year method
+     */
+  public map<String,integer> getDataOfDate(integer year, integer month,String choiceCompany)
+    {  
+         Integer revenueSummInMonth=0;
+         Integer margeSummInMonth=0;
+        
+        Map<String,integer> rezultMap=new Map<String,integer>();
+        Map<integer,Map<String,Integer>>indexMapMonth=new Map<integer,Map<String,Integer>>();
+        
+        for(WrapAll indexWrapAll:reletionship){
+            // if in custom reletionship it is choiceCompany_string
+            if(indexWrapAll.nameCompanyRow==choiceCompany){
+                // if in custom reletionship  choit year_integer
+                if(indexWrapAll.rezultMapDate.containsKey(year)){
+                    indexMapMonth.putAll(indexWrapAll.rezultMapDate.get(year));
+                    // if in custom reletionship  choit month_integer, then included  data
+                    if(indexMapMonth.containsKey(month)){
+                       // if we have many reletionship from this company and data, then summ all data
+                       margeSummInMonth+=(integer)indexMapMonth.get(month).get('marge'); 
+                       revenueSummInMonth+=(integer)indexMapMonth.get(month).get('revenvue');
+                      
+                    }
+                }
+            }
+        }
+        // fill calculate data in rezultMap
+     	rezultMap.put('revenvue',revenueSummInMonth);
+        rezultMap.put('marge',margeSummInMonth);
+     
+        return rezultMap;
+       
+        
+    }
+    
+    /**
+     * update data on the page
+     */
+    public void updateAll()
+    {    //update data from DB
+		 listCompany= new List<Company__c>([SELECT nameCompany__c,id__c
+                                            FROM Company__c]);  
+         listRate= new List<Rate__c>([SELECT  nameRate__c,id__c,revenvueRate__c,margeRate__c
+                                            FROM Rate__c]); 
+         listWP= new List<WorkPeriod__c>([SELECT  nameWP__c,id__c,StartDate__c,EndDate__c,Rate__c,OrderStud__c
+                                            FROM WorkPeriod__c
+                                         	WHERE StartDate__c!=NULL AND EndDate__c!=NULL
+                                          			AND Rate__c!=NULL AND OrderStud__c!=NULL 
+                                            ORDER BY StartDate__c]);
+         listOrder= new List<OrderStud__c>([SELECT  nameOrder__c,id__c,Company__c
+                                            FROM OrderStud__c]); 
+       culculateReletionship();// calculate custom Reletionship in boot
+   	 }
+    /**
+     * calculate custom relationship method
+     */
+     public void culculateReletionship()
+      {   
+          reletionship = new List<WrapAll>();
+          Rate__c indexRateLink= new Rate__c();
+           // for WorkPeriod conection main
+         for(WorkPeriod__c indexWP:listWP){
+             // for Rate conection
+                     for(Rate__c indexR:listRate){
+                         if(indexWP.Rate__c==indexR.id){
+                            indexRateLink=indexR;
+                             }
+                     }             	
+		       // for in OrderStud__c conection
+                 for(OrderStud__c indexO:listOrder){
+                     if(indexWP.OrderStud__c==indexO.Id){
+                     		 //for in Company__c conection
+                              for(Company__c indexC: listCompany){
+                                    if(indexC.Id==indexO.Company__c){
+                                       reletionship.add(new WrapAll(indexc,indexO,indexWP,indexRateLink)); 
+                                    }
+                               }
+                     }
+            	 } 
+             	
+        	}//end for WorkPeriod__c
+    }// end methoâ culculateReletionship
+        
+}// end for class

@@ -1,0 +1,24 @@
+global class BatchGOT implements Database.Batchable<sObject>{
+
+
+
+   global Database.QueryLocator start(Database.BatchableContext BC){
+   
+      return Database.getQueryLocator([SELECT Id,deadTime__c FROM HeroHome__c]);
+   }
+
+   global void execute(Database.BatchableContext BC, List<sObject> scope){
+       
+       List<HeroHome__c> updateList = new List<HeroHome__c>();
+       for(HeroHome__c item:(List<HeroHome__c>)scope){
+           item.deadTime__c=NULL;
+           updateList.add(item);
+       }
+       system.debug(updateList);
+       update updateList;     
+    }
+
+   global void finish(Database.BatchableContext BC){
+      
+   }
+}
