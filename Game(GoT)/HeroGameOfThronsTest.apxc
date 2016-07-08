@@ -5,9 +5,9 @@
 
 @isTest(SeeAllData=false)
 private class HeroGameOfThronsTest {
-   
-    @isTest
-    static  void positiveCaseTeste(){
+    
+    @TestSetup
+    static void setupAllData(){
         GameOfThrons testGame= new GameOfThrons();
          // check how create hero from page
          testGame.saveCreateHero();//for  createHeroPage==true
@@ -16,12 +16,34 @@ private class HeroGameOfThronsTest {
          testGame.saveCreateHero();//for  createHeroPage==true
          testGame.createNewHero= new HeroHome__c(nameHero__c='testHero2',hpHero__c=1000,maxDamadge__c=80,minDamadge__c=40,countWins__c=0,countDefits__c=0);
          testGame.saveCreateHero();
-       
-         // jast try method use
+         // create test armor and weapon
+        List<HeroArmor__c> armorListDrop=new List<HeroArmor__c>();
+        List<HeroWeapon__c> weaponListDrop=new List<HeroWeapon__c>(); 
+        for(integer i=0; i<10;i++){
+          armorListDrop.add(new HeroArmor__c(armorName__c='TestArmor'+i,armorType__c='body', armorDropRate__c=1.0,usedHeroArmor__c='no'));
+          weaponListDrop.add(new HeroWeapon__c(weaponName__c='TestArmor'+i,weaponDropRate__c=1.0,usedHeroWeapon__c='no')); 
+        } 
+        insert armorListDrop;
+        insert weaponListDrop;
+    }
+    
+    
+   
+    @isTest
+    static  void positiveCaseTeste()
+    {
+         GameOfThrons testGame= new GameOfThrons();
+         // check how create hero from page
+         testGame.saveCreateHero();//for  createHeroPage==true
+         testGame.createNewHero= new HeroHome__c(nameHero__c='testHero3',hpHero__c=1000,maxDamadge__c=80,minDamadge__c=40,countWins__c=0,countDefits__c=0);
+         testGame.saveCreateHero();
+      
+      // jast try method use
          testGame.updatePage();
          testGame.choiceHeroInBattle();
          testGame.deleteHero();
          
+       
          
          //  for check trigger before battle
          HeroHome__c TestHero1checkT =[SELECT name,nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c 
@@ -33,16 +55,27 @@ private class HeroGameOfThronsTest {
          // play 10 game 
         for(integer i=0;i<10;i++){
         // receive data for battle
-         testGame.choice= new List<HeroHome__c>([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+         testGame.choice= new List<HeroHome__c>([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,
+                                                 		   winRate__c,countWins__c,countDefits__c,attackRate__c,defensRate__c 
                                                            FROM HeroHome__c 
                                                            WHERE nameHero__c='testHero2' OR nameHero__c='testHero1']);
+        
           // read test hero 
-         HeroGameOfThrons TestHero1= new HeroGameOfThrons([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+         HeroGameOfThrons TestHero1= new HeroGameOfThrons([SELECT nameHero__c,hpHero__c,minDamadge__c,maxDamadge__c,
+                                              expHero__c,lvlHero__c,deadTime__c,undeadHero__c,winRate__c,
+                                              countWins__c,countDefits__c,attackRate__c,defensRate__c,inventory__c,
+                                              HeroHome__c.inventory__r.weaponHero__r.weaponRate__c,
+                                              HeroHome__c.inventory__r.totalArmor__c
                                                            FROM HeroHome__c 
                                                            WHERE nameHero__c='testHero1']);
-         HeroGameOfThrons TestHero2= new HeroGameOfThrons([SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+         HeroGameOfThrons TestHero2= new HeroGameOfThrons([SELECT nameHero__c,hpHero__c,minDamadge__c,maxDamadge__c,
+                                              expHero__c,lvlHero__c,deadTime__c,undeadHero__c,winRate__c,
+                                              countWins__c,countDefits__c,attackRate__c,defensRate__c,inventory__c,
+                                              HeroHome__c.inventory__r.weaponHero__r.weaponRate__c,
+                                              HeroHome__c.inventory__r.totalArmor__c
                                                            FROM HeroHome__c 
                                                            WHERE nameHero__c='testHero2']);
+        
         // check batle
         testGame.fight(TestHero1, TestHero2);
         system.assertNotEquals(null, TestHero1);
@@ -53,21 +86,33 @@ private class HeroGameOfThronsTest {
         
         
          // check trigger for winRate change
-         HeroHome__c TestHero1fromUpdate =[SELECT name,nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c  
+         HeroHome__c TestHero1fromUpdate =[SELECT name,nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,
+                                           lvlHero__c,winRate__c,countWins__c,countDefits__c  
                                                                        FROM HeroHome__c 
                                                                        WHERE nameHero__c='testHero1'];
          HeroHome__c TestHero2fromUpdate=[SELECT nameHero__c, hpHero__c,minDamadge__c,
-                                                                      maxDamadge__c,expHero__c,lvlHero__c,winRate__c,countWins__c,countDefits__c 
+                                          maxDamadge__c,expHero__c,lvlHero__c,winRate__c,
+                                          								countWins__c,countDefits__c 
                                                                        FROM HeroHome__c 
                                                                        WHERE nameHero__c='testHero2'];
-      
+		      
         system.assertNotEquals(TestHero1checkT.winRate__c, TestHero1fromUpdate.winRate__c);
         system.assertNotEquals(TestHero2checkT.winRate__c, TestHero2fromUpdate.winRate__c);
-        
-        
-        
     }
         
-
+	@isTest
+    static  void inventoryTest()
+    {
+     GameOfThrons testGame= new GameOfThrons();
+      HeroHome__c testHeroInventary =[SELECT nameHero__c, hpHero__c,minDamadge__c,maxDamadge__c,expHero__c,lvlHero__c,
+                                                 		   winRate__c,countWins__c,countDefits__c,attackRate__c,defensRate__c 
+                                                           FROM HeroHome__c 
+                                                           WHERE nameHero__c='testHero1'];
+        // for choice hero to look inventory
+        testGame.wrapList.add(new GameOfThrons.WrapBattle(testHeroInventary,true,1)); 
+        testGame.openInventory();
+        testGame.equipInventory();
+        
+    }
 
 }

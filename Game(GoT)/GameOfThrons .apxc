@@ -9,8 +9,10 @@ public class GameOfThrons
       public HeroHome__c inventoryHero{get; set;}
       public List<HeroArmor__c> armorHero{get; set;}
       public List<HeroWeapon__c> weaponHero{get; set;}
-      public static List<HeroArmor__c> armorListDrop=new List<HeroArmor__c>([SELECT armorName__c, armorDropRate__c,usedHeroArmor__c
+     @TestVisible
+     public static List<HeroArmor__c> armorListDrop=new List<HeroArmor__c>([SELECT armorName__c, armorDropRate__c,usedHeroArmor__c
                                                  FROM HeroArmor__c]);
+      @TestVisible
       public static List<HeroWeapon__c> weaponListDrop=new List<HeroWeapon__c>([SELECT weaponName__c, weaponDropRate__c,usedHeroWeapon__c
                                                  FROM HeroWeapon__c]); 
       public List<HeroHome__c> heroList{get; set;}
@@ -28,7 +30,7 @@ public class GameOfThrons
             public boolean checkValue {get;set;}
             public HeroHome__c heroBattle {get;set;}
             public Integer leader{get;set;}
-            
+            @TestVisible
             WrapBattle(HeroHome__c heroBattle, boolean chek,Integer leader)
                 {  this.leader=leader;
                    this.heroBattle= heroBattle;
