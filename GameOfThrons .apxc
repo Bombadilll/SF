@@ -1,4 +1,4 @@
-public class GameOfThrons {
+public class Game Of Throns  {
       public boolean createHeroPage{get; set;}
 	  public HeroHome__c createNewHero{get; set;} 
       public List<HeroHome__c> heroList{get; set;}
