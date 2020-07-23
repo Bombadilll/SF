@@ -1,6 +1,6 @@
 <apex:page controller="ControlerCompanyL3"  sidebar="false" showHeader="false" docType="html-5.0">
      <apex:form id="Form">
-        <!-- enter data period ... --> 
+        <!-- enter data period ... -->  
           <apex:pageBlock title="Choice period:">
                  	<apex:pageBlockSection columns="2" > 
                         <apex:input label="Name Company" value="{!choiceCompany}"/> 
