@@ -1,4 +1,4 @@
-public class HeroGameOfThrons {
+public class HeroGameOfThrons  {
     
     public String  nameHero{get;set;}
     public Integer hpHero{get;set;}
