@@ -1,4 +1,4 @@
-<apex:page controller="GameOfThrons"  tabStyle="Case">
+<apex:page controller="GameOfThrons"   tabStyle="Case">
       <apex:form id="Form">
         <apex:pageBlock title="GameOfThrons" >
             <!-- Base button ... -->
