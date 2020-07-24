@@ -1,6 +1,6 @@
 trigger trigerGameOfThrons on HeroHome__c (before update, after update)
 {   /**
-     * before update check undead Hero and clear old record deadTime__c
+     *  before update check undead Hero and clear old record deadTime__c
      */
 if(Trigger.isBefore){
         For(HeroHome__c iUpdate:Trigger.New){
