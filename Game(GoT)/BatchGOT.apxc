@@ -1,4 +1,4 @@
-global class BatchGOT implements Database.Batchable<sObject>{
+global class BatchGOT  implements Database.Batchable<sObject>{
 
 
 
