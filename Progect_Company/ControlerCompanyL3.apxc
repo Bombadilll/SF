@@ -1,5 +1,5 @@
 /**
- * class controler and calculate data- report from DB about Company work in same period
+ * class controler and calculate data- report from DB about  Company work in same period
  */
 public class ControlerCompanyL3 {
   
@@ -242,6 +242,6 @@ public class ControlerCompanyL3 {
             	 } 
              	
         	}//end for WorkPeriod__c
-    }// end metho‚ culculateReletionship
+    }// end metho√¢ culculateReletionship
         
 }// end for class
