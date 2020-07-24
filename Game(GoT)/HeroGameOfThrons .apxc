@@ -1,5 +1,5 @@
 /**
- * Class create Hero.
+ * Class create  Hero.
  */ 
 public class HeroGameOfThrons 
 {
@@ -47,7 +47,7 @@ public class HeroGameOfThrons
         
     }
      /**
-     * ñalculate Hero damadge kick
+     * Ã±alculate Hero damadge kick
      */ 
     public  Integer kickDamadge(HeroGameOfThrons  kickHero)
         {    
