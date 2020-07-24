@@ -1,4 +1,4 @@
-<apex:page controller="GameOfThrons"  tabStyle="Case" sidebar="false" showHeader="false" docType="html-5.0">
+<apex:page controller="GameOfThrons"  tabStyle="Case" sidebar="false" showHeader="false"  docType="html-5.0">
     <apex:stylesheet value="{!URLFOR($Resource.cssGOT, 'GOT.css')}"/>
       <apex:form id="Form">
             <apex:pageBlock >
